@@ -1,0 +1,40 @@
+#!/bin/env python3
+import os, sys, argparse, time
+from tivar.run import commands, load
+from os.path import isfile
+
+VERSION = '0.0.1'
+
+def main():
+
+  description = "%(prog)s -- Translation initiation variation prediction tool"
+  epilog = "For command line options of each command, type: %(prog)s COMMAND -h"
+  argparser = argparse.ArgumentParser( description = description, epilog = epilog )
+  argparser.add_argument("--version", action="version", version="%(prog)s "+VERSION)
+
+  subparsers = argparser.add_subparsers( dest = 'subcommand' )
+  for cmd in commands:
+    pi=subparsers.add_parser(cmd, help=commands[cmd])
+  if len(sys.argv)==1:
+    argparser.print_help()
+    exit(0)
+
+  cmd = sys.argv[1] # args.subcommand
+  if cmd in commands: # commands.has_key(cmd):
+    start = time.time()
+    sc = load(cmd)
+    parser = subparsers.choices[cmd]
+    sc.set_parser(parser)
+    args = argparser.parse_args()
+    run = sc.run(args)
+    if run:
+      end = time.time()
+      print('{} Done! Time used: {} s.'.format(time.ctime(), (end - start)))
+  elif cmd.startswith('--version'):
+    print(VERSION)
+  else:
+    argparser.print_help()
+
+if __name__ == '__main__':
+  main()
+
