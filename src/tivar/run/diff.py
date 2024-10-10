@@ -45,7 +45,7 @@ def run(args):
   outfile.write('Gid\tTid\tVar\tGenoPos\tStrand\tPos\tRefSeq\tAltSeq\tEffeRef\tEffeAlt\tDiff\tFC\tType\n')
 
   for m, g in tools.overlap_iter(vcfIter(args.input), io.geneIter(args.genepath)):
-    print(str(m), g.id, g.chr, g.start, g.stop)
+    print(m.tag, g.id)
     mg.reset_mut()
     mg.add_mut(m)
     lindel = m.indel_len()
@@ -111,7 +111,7 @@ def run(args):
         if r1 is not None: r1 = round(r1, 5)
         if r2 is not None: r2 = round(r2, 5)
         outfile.write(io.tabjoin(t.gid, t.id, m.tag, t.genome_pos(p), t.strand, p, lib.TI_format(sq1), lib.TI_format(sq2), r1, r2, round(diff,4), round(fc,4), s, '\n'))
-
+  return True
 
 
 if __name__ == '__main__':
