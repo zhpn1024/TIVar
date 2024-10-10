@@ -3,7 +3,7 @@ import os, sys, argparse, time
 from tivar.run import commands, load
 from os.path import isfile
 
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 
 def main():
 
