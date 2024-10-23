@@ -23,11 +23,17 @@ or
 
 `python setup.py install --user`
 
+
+**Install from PyPI**
+
+`pip install tivar`
+
+
 # Usage
 
 **predict**
 
-This module can and calculate TI efficiency scores from given sequences.
+This module can calculate TI efficiency scores from given sequences.
 
 Fasta sequence file as input:
 
@@ -45,8 +51,9 @@ The output is like:
 
 |SeqID|Pos|StartSeq|EffScore|
 |-----|-----|-----|-----|
-|Seq|13|aacaaaaaa-aTG-TACA|0.08535|
-|Seq|20|aaaTGTACA-ATG-GATG|0.34153|
+|Seq|13|aacaaaaaa-aTG-TACA|0.30354|
+|Seq|20|aaaTGTACA-ATG-GATG|0.37131|
+
 
 
 **diff**
@@ -59,6 +66,6 @@ The output is like:
 
 |Gid|Tid|Var|GenoPos|Strand|Pos|RefSeq|AltSeq|EffeRef|EffeAlt|Diff|FC|Type|
 |-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-|ENSG00000134262.13|ENST00000369569.6|chr1:113895309:A>AC|113895310|-|2056|ACCCTCCAG-ATG-GCTC|ACCCTCCAG-AGT-GGCT|0.31412|0.0|-0.3141|0.0|TI_decreased|
-|ENSG00000134262.13|ENST00000369569.6|chr1:113895309:A>AC|113895310|-|2056|ACCCTCCAG-ATG-GCTC|CCCTCCAGA-GTG-GCTC|0.31412|0.04335|-0.2708|0.138|TI_decreased|
+|ENSG00000134262.13|ENST00000369569.6|chr1:113895309:A>AC|113895310|-|2056|ACCCTCCAG-ATG-GCTC|ACCCTCCAG-AGT-GGCT|0.32097|0.0|-0.321|0.0|TI_decreased|
+|ENSG00000134262.13|ENST00000369569.6|chr1:113895309:A>AC|113895310|-|2056|ACCCTCCAG-ATG-GCTC|CCCTCCAGA-GTG-GCTC|0.32097|0.04335|-0.2776|0.1351|TI_decreased|
 

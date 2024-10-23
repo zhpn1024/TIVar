@@ -92,8 +92,8 @@ def run(args):
 
       for c in sqcmp:
         r1, r2, sq1, sq2 = None, None, None, None
-        if c[0] is not None: r1, ps1 = res[c[0]]; sq1 = seqs[c[0]]; pi = c[0]
-        if c[1] is not None: r2, ps2 = res[c[1]]; sq2 = seqs[c[1]]
+        if c[0] is not None: r1, ps1, u1 = res[c[0]]; sq1 = seqs[c[0]]; pi = c[0]
+        if c[1] is not None: r2, ps2, u2 = res[c[1]]; sq2 = seqs[c[1]]
         #r = [res[i] if i is not None else None for i in c]
         key = sq1, sq2
         if key not in used:

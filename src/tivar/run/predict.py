@@ -8,7 +8,8 @@ def set_parser(parser):
   parser.add_argument("-g", type=str, dest="genepath", help='Gene annotation file')
   parser.add_argument("-f", type=str, dest="genomefapath", help="Genome fasta file")
   parser.add_argument("-o", type=str, dest="output", required=True, help="Output result file")
-  parser.add_argument("--th", type=str, help="Output score threshold, default 0.05")
+  parser.add_argument("--th", type=float, help="Output score threshold, default 0.05")
+  parser.add_argument("--all", action="store_true", help="Output all scores from 6 models")
   parser.add_argument("--chrmap", type=str, help="Input chromosome id mapping table file if vcf chr ids are not same as chr ids in gtf/fasta files")
 
 global chrmap
@@ -74,10 +75,11 @@ def run(args):
   if args.th is not None: dth = args.th
 
   outfile = open(args.output, 'w')
-  outfile.write('SeqID\tPos\tStartSeq\tEffScore\n')
+  if args.all: outfile.write('SeqID\tPos\tStartSeq\tEffScore\tM5\tM4\tM3\tM2\tM1\tM05\n')
+  else: outfile.write('SeqID\tPos\tStartSeq\tEffScore\n')
   for id, sq in sqiter:
     print('Predicting {}...'.format(id))
-    p1, p2 = 0, len(sq) - motiflen
+    p1, p2 = 0, len(sq) - motiflen + 1
     if p2 < 1: continue
     msqs = [sq[i:i+motiflen] for i in range(p1, p2)]
     res = lib.m6cmp(msqs)
@@ -86,7 +88,11 @@ def run(args):
       if m >= dth:
         msq = msqs[i]
         sqstr = '{}-{}-{}'.format(msq[0:lhead], msq[lhead:lhead+3], msq[lhead+3:])
-        outfile.write(io.tabjoin(id, i+lhead, sqstr, round(m, 5), '\n'))
+        if args.all:
+          rstr = [round(r[1][j]*lib.lim[j], 5) for j in range(lib.mlen)]
+          outfile.write(io.tabjoin(id, i+lhead, sqstr, round(m, 5), rstr, '\n'))
+        else:
+          outfile.write(io.tabjoin(id, i+lhead, sqstr, round(m, 5), '\n'))
   return True
 
 

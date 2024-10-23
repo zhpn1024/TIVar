@@ -7,7 +7,7 @@ motiflen = 16
 lhead, ltail = 9, 4
 char_to_int = {'A':[1,0,0,0], 'T':[0,1,0,0], 'C':[0,0,1,0], 'G':[0,0,0,1]}
 char_to_int['U'] = char_to_int['T']
-ulim, dlim = 0.9, 0.1
+ulim, dlim = 0.8, 0.2
 dth, fth = 0.05, 2/3.0
 
 def encode(s):
@@ -17,6 +17,7 @@ def encode(s):
   return seq_encoded
 
 lim = [0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
+mlen = len(lim)
 nns = None
 path = os.path.dirname(__file__)
 #path = os.path.abspath(os.path.dirname(__file__)) #os.getcwd()
@@ -33,13 +34,13 @@ def m6cmp(seqs):
           ]
   x = [encode(s) for s in seqs] # [encode(s1), encode(s2)]
   xx = torch.tensor(x, dtype=torch.float, requires_grad=True)
-  preds = [nns[i](xx) for i in range(6)]
+  preds = [nns[i](xx) for i in range(mlen)]
 
   res = []
-  ps = [None] * 6
   for j in range(len(seqs)):
     est, outrange, used = {}, {}, {}
-    for i in range(6):
+    ps = [None] * mlen
+    for i in range(mlen):
       p = float(preds[i][j])
       ps[i] = p
       #print(lim[i], round(p, 4), round(p * lim[i], 4))
@@ -49,18 +50,22 @@ def m6cmp(seqs):
       else: outrange[i] = 0
       if outrange[i] == 0: used[i] = est[i]
 
-    if len(used) > 0:
+    #consist = False
+    l = len(used)
+    if l > 0:
       m = numpy.median(list(used.values()))
     else: m = None
-    #print(round(m, 4), used)
-    for i in range(6):
-      if i in used: continue
-      if m is None: used[i] = est[i]
-      elif outrange[i] == 1 and m <= ulim * lim[i]: used[i] = est[i]
-      elif outrange[i] == -1 and m >= dlim * lim[i]: used[i] = est[i]
-    m = numpy.median(list(used.values()))
+    while l < mlen:
+      for i in range(mlen):
+        if i in used: continue
+        if m is None: used[i] = est[i]
+        elif outrange[i] == 1 and m <= ulim * lim[i]: used[i] = est[i]
+        elif outrange[i] == -1 and m >= dlim * lim[i]: used[i] = est[i]
+      m = numpy.median(list(used.values()))
+      if len(used) == l: break
+      l = len(used)
     #print(seq[j], round(m, 4), used)
-    res.append([m, ps])
+    res.append([m, ps, used])
   return res #, diff, fc
 
 def getdiff(r1, r2, dth = dth, fth = fth):
