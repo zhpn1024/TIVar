@@ -20,6 +20,7 @@ lim = [0.5, 0.4, 0.3, 0.2, 0.1, 0.05]
 mlen = len(lim)
 nns = None
 path = os.path.dirname(__file__)
+path += '/cv2best'
 #path = os.path.abspath(os.path.dirname(__file__)) #os.getcwd()
 
 def TI_format(sq):
@@ -29,8 +30,8 @@ def TI_format(sq):
 def m6cmp(seqs):
   global nns
   if nns is None:
-    nns = [torch.load('{}/my_nn_6_r5.model'.format(path)), torch.load('{}/my_nn_6_r4.model'.format(path)), torch.load('{}/my_nn_6_r3.model'.format(path)),
-           torch.load('{}/my_nn_6_r2.model'.format(path)), torch.load('{}/my_nn_6_r1.model'.format(path)), torch.load('{}/my_nn_6_r05.model'.format(path)),
+    nns = [torch.load('{}_r5.model'.format(path)), torch.load('{}_r4.model'.format(path)), torch.load('{}_r3.model'.format(path)),
+           torch.load('{}_r2.model'.format(path)), torch.load('{}_r1.model'.format(path)), torch.load('{}_r05.model'.format(path)),
           ]
   x = [encode(s) for s in seqs] # [encode(s1), encode(s2)]
   xx = torch.tensor(x, dtype=torch.float, requires_grad=True)

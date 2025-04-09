@@ -8,8 +8,10 @@ def set_parser(parser):
   parser.add_argument("-g", type=str, dest="genepath", help='Gene annotation file')
   parser.add_argument("-f", type=str, dest="genomefapath", help="Genome fasta file")
   parser.add_argument("-o", type=str, dest="output", required=True, help="Output result file")
+  parser.add_argument("-m", type=str, dest="model", help="Input model prefix")
   parser.add_argument("--th", type=float, help="Output score threshold, default 0.05")
   parser.add_argument("--all", action="store_true", help="Output all scores from 6 models")
+  parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase output verbosity")
   parser.add_argument("--chrmap", type=str, help="Input chromosome id mapping table file if vcf chr ids are not same as chr ids in gtf/fasta files")
 
 global chrmap
@@ -73,12 +75,13 @@ def run(args):
   lhead, ltail = lib.lhead, lib.ltail
   dth = lib.dth
   if args.th is not None: dth = args.th
+  if args.model is not None: lib.path = args.model
 
   outfile = open(args.output, 'w')
   if args.all: outfile.write('SeqID\tPos\tStartSeq\tEffScore\tM5\tM4\tM3\tM2\tM1\tM05\n')
   else: outfile.write('SeqID\tPos\tStartSeq\tEffScore\n')
   for id, sq in sqiter:
-    print('Predicting {}...'.format(id))
+    if args.verbose > 0: print('Predicting {}...'.format(id))
     p1, p2 = 0, len(sq) - motiflen + 1
     if p2 < 1: continue
     msqs = [sq[i:i+motiflen] for i in range(p1, p2)]

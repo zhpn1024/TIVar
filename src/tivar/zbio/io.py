@@ -23,9 +23,11 @@ def splitIter(filePath, sep = '\t', gz = False, skip = 0, title = None, encoding
       except: infile = open(filePath)
   else : infile = filePath
   for i in range(skip):
-    l = next(infile)
+    try: l = next(infile)
+    except StopIteration: return []
   if title is not None : 
-    l = next(infile)
+    try: l = next(infile)
+    except StopIteration: return []
     #if gz: l = l.decode()
     lst = l.rstrip('\n').split(sep, maxsplit)
     title[:] = lst
@@ -210,6 +212,9 @@ def tabjoin(a, *args): #, sep = '\t'):
     arr[-2] = '{}{}'.format(arr[-2], arr[-1])
     arr = arr[:-1]
   return sep.join(arr)
+
+def tabjoinl(a, *args):
+  return tabjoin(a, *args) + '\n'
 
 '''
 并行处理输入的迭代器，p < 1 时为单线程，结果为skip时跳过
