@@ -1,6 +1,7 @@
 #!/bin/env python
 from tivar.zbio import io, tools, mut, fa
 from tivar import lib
+import traceback
 
 def set_parser(parser):
   parser.add_argument('-i', dest='input', required=True, type=str, help='input vcf file')
@@ -15,6 +16,9 @@ chrmap = {}
 def vcfIter(fn, chrmap = chrmap):
   for lst in io.splitIter(fn):
     if lst[0].startswith('#'): continue
+    if lst[4][0] not in ('A', 'T', 'C', 'G'):
+      print('Skip unclear alt site {}'.format(lst[0:5]))
+      continue
     if lst[4].find(',') > 0:
       print('Skip multiallele site {}'.format(lst[0:5]))
       continue
@@ -38,14 +42,23 @@ def run(args):
   genome = fa.Fa(args.genomefapath)
   mg = mut.MutGenome(args.genomefapath)
 
-  motiflen = lib.motiflen
-  lhead, ltail = lib.lhead, lib.ltail
+  #print('Loading gene annotation...')
+  #anno = {}
+  #for g in io.geneIter(args.genepath):
+  #  if g.chr not in anno: anno[g.chr] = []
+  #  anno[g.chr].append(g)
+  #for chr in anno: pass
+
+  #print('Processing...')
+
+  motiflen = lib.motiflen # 16
+  lhead, ltail = lib.lhead, lib.ltail # 9, 4
 
   outfile = open(args.output, 'w')
   outfile.write('Gid\tTid\tVar\tGenoPos\tStrand\tPos\tRefSeq\tAltSeq\tEffeRef\tEffeAlt\tDiff\tFC\tType\n')
 
   for m, g in tools.overlap_iter(vcfIter(args.input), io.geneIter(args.genepath)):
-    print(m.tag, g.id)
+    #print(m.tag, g.id)
     mg.reset_mut()
     mg.add_mut(m)
     lindel = m.indel_len()
@@ -56,44 +69,78 @@ def run(args):
       tsq = genome.transSeq(t)
       msq = mg.transSeq(t)
       if tsq == msq: continue
-      if t.strand != '-': p0 = t.cdna_pos(m.pos)
-      else: p0 = t.cdna_pos(m.end)
+      if t.strand != '-': p0 = t.cdna_pos(m.pos) # variant pos in trans
+      else: p0 = t.cdna_pos(m.end) 
+      if p0 is None: continue
       #if tsq[p0] == msq[p0]: p0 += 1
       sqref, sqalt, sqcmp = [], [], []
-      p1, p2 = p0 - motiflen + 1, p0 + 1
+      p1, p2 = p0 - motiflen + 1, p0 + 1 # motif scan range
       if p1 < 0: p1 = 0
+      if p2 + motiflen > len(tsq): p2 = len(tsq) - motiflen
       sqref = [tsq[i:i+motiflen] for i in range(p1, p2)]
       sqalt = [msq[i:i+motiflen] for i in range(p1, p2+lindel)]
       l1, l2 = len(sqref), len(sqalt)
-      if p0 - p1 > lhead:
-        d = p0 - p1 - lhead
-        for i in range(0, d): sqcmp.append([i, i])
+      if l1 == 0 or l2 == 0: continue
       if lindel == 0:
-        for i in range(d, l1): sqcmp.append([i, i])
-      elif lindel < 0:
-        if lindel < -2:
-          d2 = abs(lindel) - 2
-          for i in range(d, d+d2):
-            if i == d and sqref[i][lhead] == sqalt[i][lhead]: sqcmp.append([i, i])
-            else: sqcmp.append([i, None])
-        for i in range(d+abs(lindel)-2, l1): sqcmp.append([i, i-abs(lindel)])
-      elif lindel > 0:
-        if lindel > 2:
-          d2 = abs(lindel) - 2
-          for i in range(d, d+d2):
-            if i == d and sqref[i][lhead] == sqalt[i][lhead]: sqcmp.append([i, i])
-            else: sqcmp.append([None, i])
-        for i in range(d+abs(lindel)-2, l2): sqcmp.append([i-abs(lindel), i])
+        for i in range(0, l1):
+          if len(sqref[i]) < motiflen or len(sqalt[i]) < motiflen: continue
+          sqcmp.append([i, i])
+      else:
+        d = p0 - p1 - lhead
+        if d > 0: # p0 - p1 > lhead:
+          for i in range(0, min(d, l2)):
+            if i >= l2 or len(sqalt[i]) < motiflen: continue
+            sqcmp.append([i, i])
+        if lindel < 0:
+          if lindel < -2:
+            d2 = abs(lindel) - 2
+            for i in range(max(0, d), d+d2):
+              if i >= l2 or len(sqalt[i]) < motiflen: continue
+              if i == d and sqref[i][lhead] == sqalt[i][lhead]: sqcmp.append([i, i])
+              else: sqcmp.append([i, None])
+          for i in range(max(0, d+abs(lindel)-2), l1):
+            if i >= l2 or len(sqalt[i]) < motiflen: continue
+            sqcmp.append([i, i-abs(lindel)])
+        elif lindel > 0:
+          if lindel > 2:
+            d2 = abs(lindel) - 2
+            for i in range(max(0, d), d+d2):
+              if i >= l1 or len(sqalt[i]) < motiflen: continue
+              try:
+                if i == d and sqref[i][lhead] == sqalt[i][lhead]: sqcmp.append([i, i])
+                else: sqcmp.append([None, i])
+              except Exception as e:
+                print(e)
+                print(i, l1, l2, sqref, sqalt)
+                return False
+          for i in range(max(0, d+abs(lindel)-2), l2): sqcmp.append([i-abs(lindel), i])
 
       seqs = sqref + sqalt
       for c in sqcmp:
         if c[1] is not None: c[1] += l1
-      res = lib.m6cmp(seqs)
+      #print(seqs)
+      try: res = lib.m6cmp(seqs)
+      except Exception as e:
+        print(e, str(e), type(e))
+        traceback.print_exc()
+        print(m.tag, g.id)
+        print(l1, l2, seqs)
+        return False
+      #print(l1, l2, len(seqs), len(res), sqcmp)
 
       for c in sqcmp:
         r1, r2, sq1, sq2 = None, None, None, None
-        if c[0] is not None: r1, ps1, u1 = res[c[0]]; sq1 = seqs[c[0]]; pi = c[0]
-        if c[1] is not None: r2, ps2, u2 = res[c[1]]; sq2 = seqs[c[1]]
+        is_na = False
+        if c[0] is not None:
+          r1, ps1, u1 = res[c[0]]
+          sq1 = seqs[c[0]]
+          pi = c[0]
+          if res[c[0]][0] is None: is_na = True
+        if c[1] is not None:
+          r2, ps2, u2 = res[c[1]]
+          sq2 = seqs[c[1]]
+          if res[c[1]][0] is None: is_na = True
+        if is_na: continue
         #r = [res[i] if i is not None else None for i in c]
         key = sq1, sq2
         if key not in used:

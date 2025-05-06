@@ -18,7 +18,7 @@ def overlap(A, B):
   '''
   if A is overlapping with B.
   '''
-  if(A.chr != B.chr) : return False
+  if chrcmp(A.chr, B.chr) != 0 : return False
   if (A.stop <= B.start) : return False
   if (B.stop <= A.start) : return False
   return True
@@ -173,10 +173,10 @@ def cover_iter(bedIter, weight= lambda x: 1):
     current[0:i] = []
     clen = len(current)
     
-def overlap_iter(bedIterA, bedIterB, func=overlap, ignoreStrand = True, chrcmp = cmp, counts = [0,0]): ### Need Revise!!
+def overlap_iter(bedIterA, bedIterB, func=overlap, ignoreStrand = True, chrcmp = chrcmp, counts = [0,0], alist = []): ### Need Revise!!
   '''overlap of two bed iteraters (files), both should be sorted.
   '''
-  lst = []
+  lst = alist # []
   ac = next(bedIterA) # .next() current bed A
   counts[0] += 1
   Aend = False
