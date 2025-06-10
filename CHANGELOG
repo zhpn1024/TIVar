@@ -1,0 +1,3 @@
+v0.1.2
+	Update model
+	Fix bugs for non-ATCG bases and large indel variants.
