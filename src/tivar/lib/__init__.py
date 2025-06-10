@@ -33,8 +33,8 @@ def TI_format(sq):
 def m6cmp(seqs):
   global nns
   if nns is None:
-    nns = [torch.load('{}_r5.model'.format(path)), torch.load('{}_r4.model'.format(path)), torch.load('{}_r3.model'.format(path)),
-           torch.load('{}_r2.model'.format(path)), torch.load('{}_r1.model'.format(path)), torch.load('{}_r05.model'.format(path)),
+    nns = [torch.load('{}_r5.model'.format(path), weights_only=False), torch.load('{}_r4.model'.format(path), weights_only=False), torch.load('{}_r3.model'.format(path), weights_only=False),
+           torch.load('{}_r2.model'.format(path), weights_only=False), torch.load('{}_r1.model'.format(path), weights_only=False), torch.load('{}_r05.model'.format(path), weights_only=False),
           ]
   dj, x = {}, []
   for j, s in enumerate(seqs):
