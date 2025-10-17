@@ -404,4 +404,17 @@ def numround(f, r1 = 4, r2 = 2, exact = False):
       if s.endswith('.'): s += '0'
   return s
 
-
+def downsample_even(arr, n):
+  l = len(arr)
+  if l <= n: return arr
+  out = []
+  m = l * n * 2
+  #print(m)
+  d = l * 2 # float(l) / n
+  s = l # d / 2
+  for i in range(n):
+    j = s // n // 2 # int(s)
+    #print(s, j)
+    out.append(arr[j])
+    s += d
+  return out
