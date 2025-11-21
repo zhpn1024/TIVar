@@ -7,7 +7,8 @@ def set_parser(parser):
   parser.add_argument('-S', dest='seqfile', type=str, help='input squence text file')
   parser.add_argument("-g", type=str, dest="genepath", help='Gene annotation file')
   parser.add_argument("-f", type=str, dest="genomefapath", help="Genome fasta file")
-  parser.add_argument("-o", type=str, dest="output", required=True, help="Output result file")
+  parser.add_argument("-o", type=str, dest="output", help="Output result file")
+  parser.add_argument('--outdir', type=str, help='Output dir, alt to -o option, output filename: predict.txt')
   parser.add_argument("-m", type=str, dest="model", help="Input model prefix")
   parser.add_argument("--th", type=float, help="Output score threshold, default 0.05")
   parser.add_argument("--all", action="store_true", help="Output all scores from 6 models")
@@ -62,6 +63,11 @@ def run(args):
   else:
     print('Invalid input! Please provide either -s (squence only), -S (sequence file) or (-g annotation -f genome) combined input.')
     exit(-1)
+  if args.output is not None: outfn = args.output
+  elif args.outdir is not None: outfn = args.outdir + '/predict.txt'
+  else:
+    print('Invalid input! Please provide either -o (output file) or --outdir (output dir)')
+    exit(-1)
 
   global chrmap
   if args.chrmap is not None :
@@ -77,7 +83,7 @@ def run(args):
   if args.th is not None: dth = args.th
   if args.model is not None: lib.path = args.model
 
-  outfile = open(args.output, 'w')
+  outfile = open(outfn, 'w')
   if args.all: outfile.write('SeqID\tPos\tStartSeq\tEffScore\tM5\tM4\tM3\tM2\tM1\tM05\n')
   else: outfile.write('SeqID\tPos\tStartSeq\tEffScore\n')
   for id, sq in sqiter:

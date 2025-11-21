@@ -6,7 +6,8 @@ import traceback
 def set_parser(parser):
   parser.add_argument('-i', dest='input', required=True, type=str, help='input vcf file')
   parser.add_argument("-g", type=str, dest="genepath", required=True, help='Gene annotation file')
-  parser.add_argument("-o", type=str, dest="output", required=True, help="Output result file")
+  parser.add_argument("-o", type=str, dest="output", help="Output result file")
+  parser.add_argument('--outdir', type=str, help='Output dir, alt to -o option, output filename: diff.txt')
   parser.add_argument("-f", type=str, dest="genomefapath", required=True, help="Genome fasta file")
   parser.add_argument("--chrmap", type=str, help="Input chromosome id mapping table file if vcf chr ids are not same as chr ids in gtf/fasta files")
 
@@ -30,6 +31,11 @@ def vcfIter(fn, chrmap = chrmap):
 
 
 def run(args):
+  if args.output is not None: outfn = args.output
+  elif args.outdir is not None: outfn = args.outdir + '/diff.txt'
+  else:
+    print('Invalid input! Please provide either -o (output file) or --outdir (output dir)')
+    exit(-1)
 
   #chrmap = {}
   if args.chrmap is not None :
@@ -54,7 +60,7 @@ def run(args):
   motiflen = lib.motiflen # 16
   lhead, ltail = lib.lhead, lib.ltail # 9, 4
 
-  outfile = open(args.output, 'w')
+  outfile = open(outfn, 'w')
   outfile.write('Gid\tTid\tVar\tGenoPos\tStrand\tPos\tRefSeq\tAltSeq\tEffeRef\tEffeAlt\tDiff\tFC\tType\n')
 
   for m, g in tools.overlap_iter(vcfIter(args.input), io.geneIter(args.genepath)):
